@@ -1,0 +1,4 @@
+./db/
+./public/image/*
+!.gitkeep
+.DS_Store
