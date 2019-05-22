@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <mata charset="utf-8">
+  <title>簡易BBS by sinatra</title>
+
+	<link rel="stylesheet" href="/css/style.css">
+	<link rel="stylesheet" href="/css/bootstrap-grid.min.css">
+  <link rel="stylesheet" href="/css/bootstrap-reboot.min.css">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body>
+  <h1>うー尊尊🙏</h1>
+  <h2>こんにちは。<%= current_user['nickname'] unless current_user.nil? %>さん</h2>
+</body>
