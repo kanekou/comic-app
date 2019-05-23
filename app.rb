@@ -30,24 +30,6 @@ helpers do
   def logged_in?
     !current_user.nil?
   end
-
-
-  def encrypt_password(password)
-    unless password.nil?
-      password_solt = BCrypt::Engine.generate_salt
-      password_hash = BCrypt::Engine.hash_secret(password, password_solt)
-      return password_solt, password_hash
-    end
-  end
-
-  def user_authenticate(email, password)
-    user = $db.exec_params('select * from users where email = $1', [email]).first
-    if user && user['password'] == BCrypt::Engine.hash_secret(password, user['password_solt'])
-      true
-    else
-      false
-    end
-  end
 end
 
 get '/' do
@@ -62,6 +44,14 @@ get '/signup' do
 end
 
 post '/signup' do
+  def encrypt_password(password)
+    unless password.nil?
+      password_solt = BCrypt::Engine.generate_salt
+      password_hash = BCrypt::Engine.hash_secret(password, password_solt)
+      return password_solt, password_hash
+    end
+  end
+
   nickname = params[:nickname]
   email = params[:email]
   password = params[:password]
@@ -79,6 +69,15 @@ get '/login' do
 end
 
 post '/login' do
+  def user_authenticate(email, password)
+    user = $db.exec_params('select * from users where email = $1', [email]).first
+    if user && user['password'] == BCrypt::Engine.hash_secret(password, user['password_solt'])
+      true
+    else
+      false
+    end
+  end
+
   email = params[:email]
   password = params[:password]
 
