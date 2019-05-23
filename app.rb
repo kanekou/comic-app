@@ -3,6 +3,7 @@ require 'sinatra/reloader'
 require 'dotenv/load'
 require 'pg'
 require 'pry'
+require 'bcrypt'
 
 use Rack::MethodOverride
 enable :sessions
@@ -29,6 +30,24 @@ helpers do
   def logged_in?
     !current_user.nil?
   end
+
+
+  def encrypt_password(password)
+    unless password.nil?
+      password_solt = BCrypt::Engine.generate_salt
+      password_hash = BCrypt::Engine.hash_secret(password, password_solt)
+      return password_solt, password_hash
+    end
+  end
+
+  def user_authenticate(email, password)
+    user = $db.exec_params('select * from users where email = $1', [email]).first
+    if user && user['password'] == BCrypt::Engine.hash_secret(password, user['password_solt'])
+      true
+    else
+      false
+    end
+  end
 end
 
 get '/' do
@@ -47,7 +66,8 @@ post '/signup' do
   email = params[:email]
   password = params[:password]
 
-  $db.exec_params('INSERT INTO users (nickname, email, password) VALUES ($1,$2,$3)', [nickname, email, password])
+  password_solt, password_hash =  encrypt_password(password)
+  $db.exec_params('INSERT INTO users (nickname, email, password, password_solt) VALUES ($1,$2,$3,$4)', [nickname, email, password_hash, password_solt])
   session[:email] = email
 
   redirect to('/')
@@ -55,15 +75,14 @@ end
 
 get '/login' do
   redirect to ('/') if logged_in?
-  erb :login
+	erb :login
 end
 
 post '/login' do
   email = params[:email]
   password = params[:password]
 
-  users = $db.exec_params('select * from users where email = $1 and password = $2', [email, password]).first
-  session[:email] = email unless users.nil?
+  session[:email] = email if user_authenticate(email, password)
 
   redirect to ('/login') if session[:email].nil?
   redirect to ('/')
