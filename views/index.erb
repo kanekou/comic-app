@@ -4,12 +4,36 @@
   <mata charset="utf-8">
   <title>簡易BBS by sinatra</title>
 
-	<link rel="stylesheet" href="/css/style.css">
-	<link rel="stylesheet" href="/css/bootstrap-grid.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/bootstrap-grid.min.css">
   <link rel="stylesheet" href="/css/bootstrap-reboot.min.css">
   <link rel="stylesheet" href="/css/bootstrap.min.css">
 </head>
 <body>
-  <h1>うー尊尊🙏</h1>
-  <h2>こんにちは。<%= current_user['nickname'] unless current_user.nil? %>さん</h2>
+  <h1> 尊い漫画を崇めよう </h1j>
+  <h1> うー尊尊🙏 </h1>
+
+  <h2> 新規登録 </h2>
+  <form action="/signup" method="POST">
+    <label for="account">アカウント名:</label>
+    <input type="text" name="account" id="account" />
+    <label for="nickname">ニックネーム:</label>
+    <input type="text" name="nickname" id="nickname" />
+    <label for="email">メール:</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">パスワード：</label>
+    <input type="password" name="password" id="password"/>
+    <label for="password_confirm">パスワード確認：</label>
+    <input type="password_confirm" name="password_confirm" id="password"/>
+    <label for="profile">プロフィール(任意)：</label>
+    <input type="profile" name="profile" id="profile"/>
+
+    <input type="submit" value="サインアップ">
+  </form>
+
+  <%# 画像投稿フォーム %>
+  <%# <form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <input type="submit" value="送信する">
+  </form> %>
 </body>

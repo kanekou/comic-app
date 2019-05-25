@@ -4,6 +4,7 @@ require 'dotenv/load'
 require 'pg'
 require 'pry'
 require 'bcrypt'
+# require 'Datatime'
 
 use Rack::MethodOverride
 enable :sessions
@@ -33,14 +34,14 @@ helpers do
 end
 
 get '/' do
-  # @sql = $db.exec_params("SELECT * FROM board")
-  # @images = Dir.glob("./public/image/*").map{|path| path.split('/').last }
-  redirect to ('/login') unless logged_in?
+  redirect to ("users/#{current_user['id']}") if logged_in?
   erb :index
 end
 
-get '/signup' do
-  erb :signup
+get "/users/:user_id" do
+  # redirect to ('/') unless logged_in?
+  @user = $db.exec_params('select * from users where id = $1', [params[:user_id]]).first
+  erb :mypage
 end
 
 post '/signup' do
@@ -52,15 +53,20 @@ post '/signup' do
     end
   end
 
+  account = params[:account]
   nickname = params[:nickname]
   email = params[:email]
   password = params[:password]
+  password_confirm = params[:password_confirm]
+  profile = params[:profile]
+
+  redirect to ('/') unless password == password_confirm #再入力passが異なる場合
 
   password_solt, password_hash =  encrypt_password(password)
-  $db.exec_params('INSERT INTO users (nickname, email, password, password_solt) VALUES ($1,$2,$3,$4)', [nickname, email, password_hash, password_solt])
+  $db.exec_params('INSERT INTO users (account, nickname, email, password, password_solt, profile) VALUES ($1,$2,$3,$4,$5,$6)', [account, nickname, email, password_hash, password_solt, profile])
   session[:email] = email
 
-  redirect to('/')
+  redirect to ("/users/#{current_user['id']}")
 end
 
 get '/login' do
@@ -95,4 +101,26 @@ end
 post '/logout' do
   session[:email] = nil
   redirect to ('/login')
+end
+
+post '/upload' do
+  # @filename = params[:file][:filename]
+  commic = $db.exec_params('select * from comic where id = $1', [commic_id]).first
+  pages = params[:file][:filename]
+  @filename = "#{current_user['name']}_#{commic['id']}_#{page['id']}"
+  # binding.pry
+  file_path = params[:file][:tempfile]
+
+  FileUtils.mv(file_path, "./public/image/#{@filename}")
+
+  redirect to ('/')
+#   > params
+# => {"file"=>
+#   {"filename"=>"mac_wallpaper_2560x1600_00578.jpg",
+#    "type"=>"image/jpeg",
+#    "name"=>"file",
+#    "tempfile"=>
+#     #<File:/var/folders/kc/zpyq1l3x62qghqc9m5v3s8vw0000gn/T/RackMultipart20190523-15367-11iezit.jpg>,
+#    "head"=>
+#     "Content-Disposition: form-data; name=\"file\"; filename=\"mac_wallpaper_2560x1600_00578.jpg\"\r\nContent-Type: image/jpeg\r\n"}}
 end
