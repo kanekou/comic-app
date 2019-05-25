@@ -31,6 +31,10 @@ helpers do
   def logged_in?
     !current_user.nil?
   end
+
+  def find_comic(comic_id)
+    $db.exec_params('select * from comics where id = $1', [comic_id]).first
+  end
 end
 
 get '/' do
@@ -117,13 +121,33 @@ post '/logout' do
   redirect to ('/login')
 end
 
+get '/comics/:user_account/:comic_id' do
+  @user = $db.exec_params('select * from users where account = $1', [params[:user_account]]).first
+  @comic = find_comic(params[:comic_id])
+  @pages = $db.exec_params('select * from pages where comic_id = $1', [params[:comic_id]])
 
+  # @images = Dir.glob("./public/image/#{current_user['id']}_#{@comic['id']}*").map{|path| path.split('/').last }
+  # binding.pry
+  erb :comic
+end
+
+post '/comics/:comic_id' do
+
+end
+
+put '/comics/:comic_id' do
+
+end
+
+delete '/comics/:comic_id' do
+
+end
 
 post '/upload' do
   # @filename = params[:file][:filename]
-  commic = $db.exec_params('select * from comic where id = $1', [commic_id]).first
+  comic = $db.exec_params('select * from comic where id = $1', [comic_id]).first
   pages = params[:file][:filename]
-  @filename = "#{current_user['name']}_#{commic['id']}_#{page['id']}"
+  @filename = "#{current_user['id']}_#{comic['id']}_#{page['id']}"
   # binding.pry
   file_path = params[:file][:tempfile]
 

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <mata charset="utf-8">
+  <title>簡易BBS by sinatra</title>
+
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/bootstrap-grid.min.css">
+  <link rel="stylesheet" href="/css/bootstrap-reboot.min.css">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body>
+  <h1> Title: <%= @comic['title'] %> </h1>
+  <h2> Profile: <%= @comic['bio'] %> </h2>
+  <h2> 作者: <%= @user['nickname'] %> </h2>
+  <% @pages.each do |page| %>
+  <% binding.pry%>
+    <img src='<%= page["imagefile"] %>' >
+  <% end %>
+</body>
