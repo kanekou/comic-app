@@ -34,14 +34,27 @@ helpers do
 end
 
 get '/' do
-  redirect to ("users/#{current_user['id']}") if logged_in?
+  redirect to ("users/#{current_user['account']}") if logged_in?
   erb :index
 end
 
-get "/users/:user_id" do
+get "/users/:user_account" do
   # redirect to ('/') unless logged_in?
-  @user = $db.exec_params('select * from users where id = $1', [params[:user_id]]).first
+  @user = $db.exec_params('select * from users where account = $1', [params[:user_account]]).first
   erb :mypage
+end
+
+get "/users/:user_account/edit" do
+  @user = $db.exec_params('select * from users where account = $1', [params[:user_account]]).first
+  erb :mypage_edit
+end
+
+post "/users/:user_account/edit" do
+  user = $db.exec_params('select * from users where email = $1', [session[:email]]).first
+  redirect to ('/') unless current_user?(user)
+
+  $db.exec_params('update users set nickname = $1, profile = $2 where id = $3', [params[:nickname], params[:profile], user['id']])
+  redirect to ("/users/#{current_user['account']}")
 end
 
 post '/signup' do
@@ -63,14 +76,15 @@ post '/signup' do
   redirect to ('/') unless password == password_confirm #再入力passが異なる場合
 
   password_solt, password_hash =  encrypt_password(password)
-  $db.exec_params('INSERT INTO users (account, nickname, email, password, password_solt, profile) VALUES ($1,$2,$3,$4,$5,$6)', [account, nickname, email, password_hash, password_solt, profile])
+  $db.exec_params('INSERT INTO users (account, nickname, email, password, password_solt, profile) VALUES ($1,$2,$3,$4,$5,$6)',
+    [account, nickname, email, password_hash, password_solt, profile])
   session[:email] = email
 
-  redirect to ("/users/#{current_user['id']}")
+  redirect to ("/users/#{current_user['account']}")
 end
 
 get '/login' do
-  redirect to ('/') if logged_in?
+  redirect to ("users/#{current_user['account']}") if logged_in?
 	erb :login
 end
 
@@ -102,6 +116,8 @@ post '/logout' do
   session[:email] = nil
   redirect to ('/login')
 end
+
+
 
 post '/upload' do
   # @filename = params[:file][:filename]
