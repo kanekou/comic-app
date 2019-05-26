@@ -4,7 +4,6 @@ require 'dotenv/load'
 require 'pg'
 require 'pry'
 require 'bcrypt'
-# require 'Datatime'
 
 use Rack::MethodOverride
 enable :sessions
@@ -35,30 +34,15 @@ helpers do
   def find_comic(comic_id)
     $db.exec_params('select * from comics where id = $1', [comic_id]).first
   end
+
+  def find_user_by_account(user_account)
+    $db.exec_params('select * from users where account = $1', [user_account]).first
+  end
 end
 
 get '/' do
   redirect to ("users/#{current_user['account']}") if logged_in?
   erb :index
-end
-
-get "/users/:user_account" do
-  # redirect to ('/') unless logged_in?
-  @user = $db.exec_params('select * from users where account = $1', [params[:user_account]]).first
-  erb :mypage
-end
-
-get "/users/:user_account/edit" do
-  @user = $db.exec_params('select * from users where account = $1', [params[:user_account]]).first
-  erb :mypage_edit
-end
-
-post "/users/:user_account/edit" do
-  user = $db.exec_params('select * from users where email = $1', [session[:email]]).first
-  redirect to ('/') unless current_user?(user)
-
-  $db.exec_params('update users set nickname = $1, profile = $2 where id = $3', [params[:nickname], params[:profile], user['id']])
-  redirect to ("/users/#{current_user['account']}")
 end
 
 post '/signup' do
@@ -89,7 +73,7 @@ end
 
 get '/login' do
   redirect to ("users/#{current_user['account']}") if logged_in?
-	erb :login
+  erb :login
 end
 
 post '/login' do
@@ -121,26 +105,55 @@ post '/logout' do
   redirect to ('/login')
 end
 
+get "/users/:user_account" do
+  # redirect to ('/') unless logged_in?
+  @user = find_user_by_account(params[:user_account])
+  erb :mypage
+end
+
+get "/users/:user_account/edit" do
+  @user = find_user_by_account(params[:user_account])
+  erb :mypage_edit
+end
+
+post "/users/:user_account/edit" do
+  user = $db.exec_params('select * from users where email = $1', [session[:email]]).first
+  redirect to ('/') unless current_user?(user)
+
+  $db.exec_params('update users set nickname = $1, profile = $2 where id = $3', [params[:nickname], params[:profile], user['id']])
+  redirect to ("/users/#{current_user['account']}")
+end
+
 get '/comics/:user_account/:comic_id' do
-  @user = $db.exec_params('select * from users where account = $1', [params[:user_account]]).first
+  @user = find_user_by_account(params[:user_account])
   @comic = find_comic(params[:comic_id])
   @pages = $db.exec_params('select * from pages where comic_id = $1', [params[:comic_id]])
 
-  # @images = Dir.glob("./public/image/#{current_user['id']}_#{@comic['id']}*").map{|path| path.split('/').last }
-  # binding.pry
   erb :comic
 end
 
-post '/comics/:comic_id' do
+post '/pages/:comic_id' do
+  # 画像の保存
+  filename = "#{current_user['id']}_#{params[:comic_id]}_#{params[:page_number]}"
+  current_file_path = params[:file][:tempfile]
+  file_type = params[:file][:type].split('/').last
+  move_file_path = "/image/#{filename}.#{file_type}"
 
+  FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+
+  #db保存
+  $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, uploaded_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], move_file_path, Time.now, Time.now])
+  redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
 end
 
-put '/comics/:comic_id' do
-
+post '/comics/:comic_id' do
+  $db.exec_params('INSERT INTO comics (user_id, title, bio, created_at, uploaded_at) VALUES ($1,$2,$3,$4,$5)', [current_user['id'], params[:title], params[:bio], Time.now, Time.now])
+  redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
 end
 
 delete '/comics/:comic_id' do
-
+  $db.exec_params('delete from comics where id = $3', [params[:comic_id]])
+  redirect to ("/users/#{current_user['account']}")
 end
 
 post '/upload' do
@@ -148,7 +161,6 @@ post '/upload' do
   comic = $db.exec_params('select * from comic where id = $1', [comic_id]).first
   pages = params[:file][:filename]
   @filename = "#{current_user['id']}_#{comic['id']}_#{page['id']}"
-  # binding.pry
   file_path = params[:file][:tempfile]
 
   FileUtils.mv(file_path, "./public/image/#{@filename}")

@@ -10,11 +10,19 @@
   <link rel="stylesheet" href="/css/bootstrap.min.css">
 </head>
 <body>
-  <h1> Title: <%= @comic['title'] %> </h1>
-  <h2> Profile: <%= @comic['bio'] %> </h2>
-  <h2> 作者: <%= @user['nickname'] %> </h2>
+  <h1>タイトル: <%= @comic['title'] %> </h1>
+  <h2>あらすじ: <%= @comic['bio'] %> </h2>
+  <h2>作者: <%= @user['nickname'] %>@<%= @user['account'] %> </h2>
+
+  <div>画像アップロード </div>
+  <form action="/pages/<%= @comic['id'] %>" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <input type="text", name="page_number">
+    <input type="submit" value="送信する">
+  </form>
+
+  <h3>ページ一覧</h3>
   <% @pages.each do |page| %>
-  <% binding.pry%>
-    <img src='<%= page["imagefile"] %>' >
+    <img src='<%= page["imagefile"] %>' width="300" height="200" >
   <% end %>
 </body>
