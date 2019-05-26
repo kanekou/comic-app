@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <mata charset="utf-8">
+  <title>簡易BBS by sinatra</title>
+
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/bootstrap-grid.min.css">
+  <link rel="stylesheet" href="/css/bootstrap-reboot.min.css">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+</head>
+<body>
+  <h1> 漫画投稿 </h1>
+
+  <div>画像アップロード </div>
+  <form action="/comic" method="POST" enctype="multipart/form-data">
+    <input type="text", name="title">
+    <input type="text", name="bio">
+    <input type="file" name="file">
+    <input type="submit" value="送信する">
+  </form>
+</body>

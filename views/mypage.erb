@@ -5,19 +5,22 @@
   <mata charset="utf-8">
   <title>簡易BBS by sinatra</title>
 
-	<link rel="stylesheet" href="/css/style.css">
-	<link rel="stylesheet" href="/css/bootstrap-grid.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/bootstrap-grid.min.css">
   <link rel="stylesheet" href="/css/bootstrap-reboot.min.css">
   <link rel="stylesheet" href="/css/bootstrap.min.css">
 </head>
 <body>
   <h1>うー尊尊🙏</h1>
-  <h2><%= @user['nickname'] %> @ <%= @user['account'] %></h2>
-  <h3><%= @user['profile'] %></h3>
+  <h2>ニックネーム: <%= @user['nickname'] %> @ <%= @user['account'] %></h2>
+  <h3>プロフィール: <%= @user['profile'] %></h3>
 
-  <%# 画像投稿フォーム %>
-  <%# <form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <input type="submit" value="送信する">
-  </form> %>
+  <h3>作品一覧</h3>
+  <% @comics.each do |comic| %>
+    <%= comic['title'] %>
+    ストーリー: <%= comic['bio'] %>
+    作成日: <%= comic['created_at'] %>
+    更新日: <%= comic['uploaded_at'] %>
+    <a href="/comics/<%= @user['account'] %>/<%= comic['id'] %>"><img src='<%= find_title_page(comic['id']) %>' width="300" height="200"></a>
+  <% end %>
 </body>
