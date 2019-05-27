@@ -138,21 +138,6 @@ get '/comics/:user_account/:comic_id' do
   erb :comic
 end
 
-post '/pages/:comic_id' do
-  # 画像の保存
-  filename = "#{current_user['id']}_#{params[:comic_id]}_#{params[:page_number]}"
-  current_file_path = params[:file][:tempfile]
-  file_type = params[:file][:type].split('/').last
-  move_file_path = "/image/#{filename}.#{file_type}"
-
-  FileUtils.mv(current_file_path, "./public/#{move_file_path}")
-
-  #db保存
-  $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, uploaded_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], move_file_path, Time.now, Time.now])
-  $db.exec_params('UPDATE comics SET uploaded_at = $1 WHERE id = $2', [Time.now, params[:comic_id]])
-  redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
-end
-
 # 漫画投稿ページ
 get '/post_comic' do
   redirect to ('/') unless logged_in?
@@ -162,7 +147,7 @@ end
 # 新規漫画投稿
 post '/comic' do
   # comicデータの保存
-  $db.exec_params('INSERT INTO comics (user_id, title, bio, created_at, uploaded_at) VALUES ($1,$2,$3,$4,$5)', [current_user['id'], params[:title], params[:bio], Time.now, Time.now])
+  $db.exec_params('INSERT INTO comics (user_id, title, bio, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [current_user['id'], params[:title], params[:bio], Time.now, Time.now])
   comic = $db.exec_params('SELECT * FROM comics ORDER BY id DESC LIMIT 1').first
 
   # page画像データの保存
@@ -181,9 +166,10 @@ post '/comic' do
       FileUtils.mv(current_file_path, "./public/#{move_file_path}")
     end
 
-    $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, uploaded_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index+1, move_file_path, Time.now, Time.now])
+    $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index+1, move_file_path, Time.now, Time.now])
 
-    $db.exec_params('UPDATE comics SET uploaded_at = $1 WHERE id = $2', [Time.now, comic['id']]) if index == 3
+    # comicの更新日時を更新
+    $db.exec_params('UPDATE comics SET updated_at = $1 WHERE id = $2', [Time.now, comic['id']]) if index == 3
   end
 
   redirect to ("/comics/#{current_user['account']}/#{comic['id']}")
@@ -197,30 +183,24 @@ delete '/comics/:comic_id' do
   redirect to ("/users/#{current_user['account']}")
 end
 
+# page追加
+post '/pages/:comic_id' do
+  # 画像の保存
+  filename = "#{current_user['id']}_#{params[:comic_id]}_#{params[:page_number]}"
+  current_file_path = params[:file][:tempfile]
+  file_type = params[:file][:type].split('/').last
+  move_file_path = "/image/#{filename}.#{file_type}"
+
+  FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+
+  #db保存
+  $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], move_file_path, Time.now, Time.now])
+  $db.exec_params('UPDATE comics SET updated_at = $1 WHERE id = $2', [Time.now, params[:comic_id]])
+  redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
+end
+
 # page削除
 delete '/page/:comic_id/:page_id' do
   $db.exec_params('DELETE FROM pages WHERE id = $1', [params[:page_id]])
   redirect to ("comics/#{current_user['account']}/#{params['comic_id']}")
-end
-
-
-post '/upload' do
-  # @filename = params[:file][:filename]
-  comic = $db.exec_params('select * from comic where id = $1', [comic_id]).first
-  pages = params[:file][:filename]
-  @filename = "#{current_user['id']}_#{comic['id']}_#{page['id']}"
-  file_path = params[:file][:tempfile]
-
-  FileUtils.mv(file_path, "./public/image/#{@filename}")
-
-  redirect to ('/')
-#   > params
-# => {"file"=>
-#   {"filename"=>"mac_wallpaper_2560x1600_00578.jpg",
-#    "type"=>"image/jpeg",
-#    "name"=>"file",
-#    "tempfile"=>
-#     #<File:/var/folders/kc/zpyq1l3x62qghqc9m5v3s8vw0000gn/T/RackMultipart20190523-15367-11iezit.jpg>,
-#    "head"=>
-#     "Content-Disposition: form-data; name=\"file\"; filename=\"mac_wallpaper_2560x1600_00578.jpg\"\r\nContent-Type: image/jpeg\r\n"}}
 end

@@ -20,7 +20,7 @@
       <%= comic['title'] %>
       ストーリー: <%= comic['bio'] %> <br>
       作成日: <%= comic['created_at'] %> <br>
-      更新日: <%= comic['uploaded_at'] %> <br>
+      更新日: <%= comic['updated_at'] %> <br>
       <% unless find_title_page(comic['id']).nil? %>
         <a href="/comics/<%= @user['account'] %>/<%= comic['id'] %>"><img src='<%= find_title_page(comic['id']) %>' width="300" height="200"></a>
       <% end %>
