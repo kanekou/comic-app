@@ -110,7 +110,6 @@ post '/logout' do
 end
 
 get "/users/:user_account" do
-  # redirect to ('/') unless logged_in?
   @user = find_user_by_account(params[:user_account])
   @comics = $db.exec_params('SELECT * FROM comics WHERE user_id = $1', [@user['id']])
   erb :mypage
@@ -170,11 +169,15 @@ post '/comic' do
 
   page_params.each_with_index do |page_param, index|
     page_name = "#{current_user['id']}_#{comic['id']}_#{index+1}"
-    current_file_path = page_param[:tempfile]
-    file_type = page_param[:type].split('/').last
-    move_file_path = "/image/#{page_name}.#{file_type}"
 
-    FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+    if page_param.nil?
+      move_file_path = ""
+    else
+      current_file_path = page_param[:tempfile]
+      file_type = page_param[:type].split('/').last
+      move_file_path = "/image/#{page_name}.#{file_type}"
+      FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+    end
 
     $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, uploaded_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index+1, move_file_path, Time.now, Time.now])
 
@@ -184,11 +187,19 @@ post '/comic' do
   redirect to ("/comics/#{current_user['account']}/#{comic['id']}")
 end
 
-# 漫画削除
+# comic削除
 delete '/comics/:comic_id' do
   $db.exec_params('delete from comics where id = $3', [params[:comic_id]])
   redirect to ("/users/#{current_user['account']}")
 end
+
+# page削除
+delete '/page/:comic_id/:page_id' do
+  $db.exec_params('DELETE FROM pages WHERE id = $1', [params[:page_id]])
+
+  redirect to ("comics/#{current_user['account']}/#{params['comic_id']}")
+end
+
 
 post '/upload' do
   # @filename = params[:file][:filename]

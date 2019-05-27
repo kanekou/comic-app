@@ -24,5 +24,12 @@
   <h3>ページ一覧</h3>
   <% @pages.each do |page| %>
     <img src='<%= page["imagefile"] %>' width="300" height="200" >
+    <div style="display:inline-flex">
+      <form method="POST" action="/page/<%= @comic['id'] %>/<%= page['id'] %>">
+        <input type="hidden" name="_method" value="DELETE">
+        <input type="submit" value="削除">
+      </form>
+    </div>
+    page: <%= page["page_number"] %>
   <% end %>
 </body>
