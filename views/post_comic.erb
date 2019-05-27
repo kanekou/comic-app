@@ -12,11 +12,20 @@
 <body>
   <h1> 漫画投稿 </h1>
 
-  <div>画像アップロード </div>
   <form action="/comic" method="POST" enctype="multipart/form-data">
-    <input type="text", name="title">
-    <input type="text", name="bio">
-    <input type="file" name="file">
+    <input type="text", name="title", placeholder="タイトル"><br>
+    <input type="text", name="bio", placeholder="ストーリー">
+    <div>画像アップロード </div>
+    <div>1ページ目</div>
+    <input type="file" name="page1" accept="image/*"><br>
+    <div>2ページ目</div>
+    <input type="file" name="page2" accept="image/*"><br>
+    <div>3ページ目</div>
+    <input type="file" name="page3" accept="image/*"><br>
+    <div>4ページ目</div>
+    <input type="file" name="page4" accept="image/*"><br>
+
+    <br>
     <input type="submit" value="送信する">
   </form>
 </body>

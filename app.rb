@@ -159,9 +159,29 @@ get '/post_comic' do
 end
 
 # 新規漫画投稿
-post '/comics' do
+post '/comic' do
+  # comicデータの保存
   $db.exec_params('INSERT INTO comics (user_id, title, bio, created_at, uploaded_at) VALUES ($1,$2,$3,$4,$5)', [current_user['id'], params[:title], params[:bio], Time.now, Time.now])
-  redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
+  comic = $db.exec_params('SELECT * FROM comics ORDER BY id DESC LIMIT 1').first
+
+  # page画像データの保存
+  page_params = []
+  page_params.push(params[:page1],params[:page2],params[:page3],params[:page4])
+
+  page_params.each_with_index do |page_param, index|
+    page_name = "#{current_user['id']}_#{comic['id']}_#{index+1}"
+    current_file_path = page_param[:tempfile]
+    file_type = page_param[:type].split('/').last
+    move_file_path = "/image/#{page_name}.#{file_type}"
+
+    FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+
+    $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, uploaded_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index+1, move_file_path, Time.now, Time.now])
+
+    $db.exec_params('UPDATE comics SET uploaded_at = $1 WHERE id = $2', [Time.now, comic['id']]) if index == 3
+  end
+
+  redirect to ("/comics/#{current_user['account']}/#{comic['id']}")
 end
 
 # 漫画削除
