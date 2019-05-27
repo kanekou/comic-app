@@ -17,13 +17,13 @@
   <div>画像アップロード </div>
   <form action="/pages/<%= @comic['id'] %>" method="POST" enctype="multipart/form-data">
     <input type="file" name="file">
-    <input type="text", name="page_number">
+    <input type="text", name="page_number", placeholder="ページ数">
     <input type="submit" value="送信する">
   </form>
 
   <h3>ページ一覧</h3>
   <% @pages.each do |page| %>
-    <img src='<%= page["imagefile"] %>' width="300" height="200" >
+    <img src='<%= page["imagefile"] %>' width="300" height="200">
     <div style="display:inline-flex">
       <form method="POST" action="/page/<%= @comic['id'] %>/<%= page['id'] %>">
         <input type="hidden" name="_method" value="DELETE">

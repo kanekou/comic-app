@@ -40,7 +40,9 @@ helpers do
   end
 
   def find_title_page(comic_id)
-    $db.exec_params('SELECT * FROM pages WHERE comic_id = $1 ORDER BY page_number ASC LIMIT 1', [comic_id]).first['imagefile']
+    page_title = $db.exec_params('SELECT * FROM pages WHERE comic_id = $1 ORDER BY page_number ASC LIMIT 1', [comic_id]).first
+    return nil if page_title.nil?
+    return page_title['imagefile']
   end
 end
 
@@ -189,14 +191,15 @@ end
 
 # comic削除
 delete '/comics/:comic_id' do
-  $db.exec_params('delete from comics where id = $3', [params[:comic_id]])
+  $db.exec_params('DELETE FROM pages WHERE comic_id = $1', [params[:comic_id]])
+  $db.exec_params('DELETE FROM comics WHERE id = $1', [params[:comic_id]])
+
   redirect to ("/users/#{current_user['account']}")
 end
 
 # page削除
 delete '/page/:comic_id/:page_id' do
   $db.exec_params('DELETE FROM pages WHERE id = $1', [params[:page_id]])
-
   redirect to ("comics/#{current_user['account']}/#{params['comic_id']}")
 end
 

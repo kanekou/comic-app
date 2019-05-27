@@ -15,12 +15,22 @@
   <h2>ニックネーム: <%= @user['nickname'] %> @ <%= @user['account'] %></h2>
   <h3>プロフィール: <%= @user['profile'] %></h3>
 
-  <h3>作品一覧</h3>
-  <% @comics.each do |comic| %>
-    <%= comic['title'] %>
-    ストーリー: <%= comic['bio'] %>
-    作成日: <%= comic['created_at'] %>
-    更新日: <%= comic['uploaded_at'] %>
-    <a href="/comics/<%= @user['account'] %>/<%= comic['id'] %>"><img src='<%= find_title_page(comic['id']) %>' width="300" height="200"></a>
+  <% unless @comics.nil? %>
+    <% @comics.each do |comic| %>
+      <%= comic['title'] %>
+      ストーリー: <%= comic['bio'] %> <br>
+      作成日: <%= comic['created_at'] %> <br>
+      更新日: <%= comic['uploaded_at'] %> <br>
+      <% unless find_title_page(comic['id']).nil? %>
+        <a href="/comics/<%= @user['account'] %>/<%= comic['id'] %>"><img src='<%= find_title_page(comic['id']) %>' width="300" height="200"></a>
+      <% end %>
+      <div style="display:inline-flex">
+        <form method="POST" action="/comics/<%= comic['id'] %>">
+          <input type="hidden" name="_method" value="DELETE">
+          <input type="submit" value="削除">
+        </form>
+      </div>
+      <br>
+    <% end %>
   <% end %>
 </body>
