@@ -2,13 +2,24 @@
 <html lang="ja">
 <head>
   <mata charset="utf-8">
-  <title>簡易BBS by sinatra</title>
+  <title>う~尊尊</title>
 
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/bootstrap-grid.min.css">
   <link rel="stylesheet" href="/css/bootstrap-reboot.min.css">
   <link rel="stylesheet" href="/css/bootstrap.min.css">
 </head>
+<header>
+  <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+  <!-- Navbar content -->
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+      <form action="/logout" method="POST">
+        <button type="submit" class="btn btn-info">ログアウト</button>
+      </form>
+  </nav>
+</header>
 <body>
-  <h1>う~尊尊🙏</h1>
+  <%= yield %>
 </body>

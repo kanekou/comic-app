@@ -1,36 +1,37 @@
-
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <mata charset="utf-8">
-  <title>簡易BBS by sinatra</title>
-
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/bootstrap-grid.min.css">
-  <link rel="stylesheet" href="/css/bootstrap-reboot.min.css">
-  <link rel="stylesheet" href="/css/bootstrap.min.css">
-</head>
 <body>
-  <h1>うー尊尊🙏</h1>
   <h2>ニックネーム: <%= @user['nickname'] %> @ <%= @user['account'] %></h2>
   <h3>プロフィール: <%= @user['profile'] %></h3>
 
   <% unless @comics.nil? %>
+  <div class="card-deck">
     <% @comics.each do |comic| %>
-      <%= comic['title'] %>
-      ストーリー: <%= comic['bio'] %> <br>
-      作成日: <%= comic['created_at'] %> <br>
-      更新日: <%= comic['updated_at'] %> <br>
-      <% unless find_title_page(comic['id']).nil? %>
-        <a href="/comics/<%= @user['account'] %>/<%= comic['id'] %>"><img src='<%= find_title_page(comic['id']) %>' width="300" height="200"></a>
-      <% end %>
-      <div style="display:inline-flex">
-        <form method="POST" action="/comics/<%= comic['id'] %>">
-          <input type="hidden" name="_method" value="DELETE">
-          <input type="submit" value="削除">
-        </form>
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title" style="text-align: center"><%= comic['title'] %></h4>
       </div>
-      <br>
+      <% unless find_title_page(comic['id']).nil? %>
+      <div style="text-align: center">
+        <a href="/comics/<%= @user['account'] %>/<%= comic['id'] %>">
+          <img src='<%= find_title_page(comic['id']) %>' width="300" height="200" alt="Card-image">
+        </a>
+      <% end %>
+      </div>
+      <div class="card-body">
+        <p class="card-text">
+          ストーリー: <br> <%= comic['bio'] %> <br>
+          作成日: <%= comic['created_at'] %> <br>
+          更新日: <%= comic['updated_at'] %> <br>
+        </p>
+        <div style="display:inline-flex">
+          <form method="POST" action="/comics/<%= comic['id'] %>">
+            <input type="hidden" name="_method" value="DELETE">
+            <button type="submit" class="btn btn-outline-danger">削除</button>
+          </form>
+        </div>
+      </div>
+    </div>
     <% end %>
+  </div>
   <% end %>
+
 </body>

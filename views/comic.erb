@@ -27,7 +27,7 @@
     <div style="display:inline-flex">
       <form method="POST" action="/page/<%= @comic['id'] %>/<%= page['id'] %>">
         <input type="hidden" name="_method" value="DELETE">
-        <input type="submit" value="削除">
+        <button type="submit" class="btn btn-danger">削除</button>
       </form>
     </div>
     page: <%= page["page_number"] %>

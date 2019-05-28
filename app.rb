@@ -79,7 +79,7 @@ end
 
 get '/login' do
   redirect to ("users/#{current_user['account']}") if logged_in?
-  erb :login
+  erb :login, :layout => :layout
 end
 
 post '/login' do
@@ -101,10 +101,10 @@ post '/login' do
   redirect to ('/')
 end
 
-get '/logout' do
-  redirect to ('/login') unless logged_in?
-  erb :logout
-end
+# get '/logout' do
+#   redirect to ('/login') unless logged_in?
+#   erb :layout
+# end
 
 post '/logout' do
   session[:email] = nil
