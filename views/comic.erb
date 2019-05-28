@@ -1,15 +1,4 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <mata charset="utf-8">
-  <title>簡易BBS by sinatra</title>
-
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/bootstrap-grid.min.css">
-  <link rel="stylesheet" href="/css/bootstrap-reboot.min.css">
-  <link rel="stylesheet" href="/css/bootstrap.min.css">
-</head>
-<body>
+<main>
   <h1>タイトル: <%= @comic['title'] %> </h1>
   <h2>あらすじ: <%= @comic['bio'] %> </h2>
   <h2>作者: <%= @user['nickname'] %>@<%= @user['account'] %> </h2>
@@ -21,15 +10,27 @@
     <input type="submit" value="送信する">
   </form>
 
-  <h3>ページ一覧</h3>
-  <% @pages.each do |page| %>
-    <img src='<%= page["imagefile"] %>' width="300" height="200">
-    <div style="display:inline-flex">
-      <form method="POST" action="/page/<%= @comic['id'] %>/<%= page['id'] %>">
-        <input type="hidden" name="_method" value="DELETE">
-        <button type="submit" class="btn btn-danger">削除</button>
-      </form>
+  <h3 style="text-align: center">ページ一覧</h3>
+
+  <div class="row">
+    <% @pages.each do |page| %>
+    <div class="col-sm-6 col-md-3">
+      <img src='<%= page["imagefile"] %>' width="300" height="200" class="img-thumbnail">
+      <% if current_user?(@user) %>
+      <div class="caption">
+        page: <%= page["page_number"] %>
+        <p>
+          <div style="display:inline-flex">
+            <form method="POST" action="/page/<%= @comic['id'] %>/<%= page['id'] %>">
+              <input type="hidden" name="_method" value="DELETE">
+              <button type="submit" class="btn btn-outline-danger btn-xs">削除</button>
+            </form>
+          </div>
+        </p>
+      </div>
+      <% end %>
     </div>
-    page: <%= page["page_number"] %>
-  <% end %>
-</body>
+    <% end %>
+  </div>
+</main>
+

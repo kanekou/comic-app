@@ -1,4 +1,14 @@
-body{background: #eee url(http://subtlepatterns.com/patterns/sativa.png);}
+body {
+  margin:100px;
+  background: #eee url(http://subtlepatterns.com/patterns/sativa.png);
+}
+
+form img.thumb {
+    margin:0 5px 5px 0;
+    max-width:160px;
+    vertical-align:bottom;
+}
+
 h1 {
   color: blueviolet;
 }
