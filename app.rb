@@ -44,6 +44,12 @@ helpers do
     return nil if page_title.nil?
     return page_title['imagefile']
   end
+
+  def find_last_page_number(comic_id)
+    last_page_number = $db.exec_params('SELECT * FROM pages WHERE comic_id = $1 ORDER BY page_number DESC LIMIT 1', [comic_id]).first['page_number']
+    return 0 if last_page_number.nil?
+    return last_page_number.to_i
+  end
 end
 
 get '/' do
@@ -101,11 +107,6 @@ post '/login' do
   redirect to ('/')
 end
 
-# get '/logout' do
-#   redirect to ('/login') unless logged_in?
-#   erb :layout
-# end
-
 post '/logout' do
   session[:email] = nil
   redirect to ('/login')
@@ -117,12 +118,18 @@ get "/users/:user_account" do
   erb :mypage
 end
 
-get "/users/:user_account/edit" do
-  @user = find_user_by_account(params[:user_account])
+#プロフィール編集
+# get "/users/:user_account/edit" do
+#   @user = find_user_by_account(params[:user_account])
+#   erb :mypage_edit
+# end
+
+get "/profile_edit" do
+  redirect to ('/login') unless logged_in?
   erb :mypage_edit
 end
 
-post "/users/:user_account/edit" do
+post "/profile_edit" do
   user = $db.exec_params('SELECT * FROM users WHERE email = $1', [session[:email]]).first
   redirect to ('/') unless current_user?(user)
 

@@ -1,20 +1,36 @@
 <main>
-  <h1>タイトル: <%= @comic['title'] %> </h1>
-  <h2>あらすじ: <%= @comic['bio'] %> </h2>
-  <h2>作者: <%= @user['nickname'] %>@<%= @user['account'] %> </h2>
+  <h1 class="text-center mb-3 mt-3"><%= @comic['title'] %> </h1>
+  <h3 class="text-center mb-5">作者: <%= @user['nickname'] %>@<%= @user['account'] %> </h3>
+  <div class="box8">
+    <h3 class="text-center mb-5">あらすじ</h3>
+    <p><%= @comic['bio'] %></p>
+  </div>
 
-  <div>画像アップロード </div>
-  <form action="/pages/<%= @comic['id'] %>" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <input type="text", name="page_number", placeholder="ページ数">
-    <input type="submit" value="送信する">
-  </form>
+
+  <% if current_user?(@user) %>
+  <br>
+  <br>
+  <div class="text-center mb-5" >
+    <form action="/pages/<%= @comic['id'] %>" method="POST" enctype="multipart/form-data">
+    <div id="btn" class="btn btn-outline-primary" style="inline-block">画像アップロード</div>
+      <input class="input-image" type="file" name="file" id="files"/>
+      <input class="input-image" type="text" id="filename" placeholder="選択されていません" readonly />
+      ページ番号 <input size="1" type="number", name="page_number", value="<%= find_last_page_number(@comic['id'])+1 %>" placeholder="ページ数">
+      <button type="submit" class="btn btn-info">送信する</button>
+    </form>
+  </div>
+  <% end %>
+
+  <br>
 
   <h3 style="text-align: center">ページ一覧</h3>
 
+  <br>
+  <br>
+
   <div class="row">
     <% @pages.each do |page| %>
-    <div class="col-sm-6 col-md-3">
+    <div class="col-sm-6 col-md-3" style="padding-left: 50px">
       <img src='<%= page["imagefile"] %>' width="300" height="200" class="img-thumbnail">
       <% if current_user?(@user) %>
       <div class="caption">
@@ -34,3 +50,23 @@
   </div>
 </main>
 
+<script type="text/javascript">
+ $(function() {
+     $('#files').css({
+         'position': 'absolute',
+         'top': '-9999px'
+     }).change(function() {
+         var val = $(this).val();
+         var path = val.replace(/\\/g, '/');
+         var match = path.lastIndexOf('/');
+    $('#filename').css("display","inline-block");
+         $('#filename').val(match !== -1 ? val.substring(match + 1) : val);
+     });
+     $('#filename').bind('keyup, keydown, keypress', function() {
+         return false;
+     });
+     $('#filename, #btn').click(function() {
+         $('#files').trigger('click');
+     });
+ });
+</script>
