@@ -51,3 +51,18 @@ h1 {
 #btn {
   display: inline-block;
 }
+
+.modal.and.carousel {
+  position: fixed;
+}
+
+/* モーダルウィンドウの縦表示位置を調整 */
+.modal-middle {
+ margin: 5% auto;
+}
+
+ /* 表示予定のテキストとボタンを中央揃え */
+.modal-img_footer {
+ padding: .5em;
+ text-align: center;
+}

@@ -4,9 +4,11 @@ require 'dotenv/load'
 require 'pg'
 require 'pry'
 require 'bcrypt'
+require 'rack/flash'
 
 use Rack::MethodOverride
 enable :sessions
+use Rack::Flash
 
 $db = PG::connect(
   :host => "localhost",
@@ -50,6 +52,12 @@ helpers do
     return 0 if last_page_number.nil?
     return last_page_number.to_i
   end
+
+  # flash情報のリセット
+  def reset_flashes
+    flash[:danger] = nil
+    flash[:notice] = nil
+  end
 end
 
 get '/' do
@@ -66,6 +74,8 @@ post '/signup' do
     end
   end
 
+  reset_flashes
+
   account = params[:account]
   nickname = params[:nickname]
   email = params[:email]
@@ -73,13 +83,17 @@ post '/signup' do
   password_confirm = params[:password_confirm]
   profile = params[:profile]
 
-  redirect to ('/') unless password == password_confirm #再入力passが異なる場合
+  unless password == password_confirm #再入力passが異なる場合
+    flash[:danger] = 'パスワードが異なります'
+    redirect to ('/')
+  end
 
   password_solt, password_hash =  encrypt_password(password)
   $db.exec_params('INSERT INTO users (account, nickname, email, password, password_solt, profile) VALUES ($1,$2,$3,$4,$5,$6)',
     [account, nickname, email, password_hash, password_solt, profile])
   session[:email] = email
 
+  flash[:notice] = '登録しました'
   redirect to ("/users/#{current_user['account']}")
 end
 
@@ -98,17 +112,26 @@ post '/login' do
     end
   end
 
+  reset_flashes
+
   email = params[:email]
   password = params[:password]
 
   session[:email] = email if user_authenticate(email, password)
 
-  redirect to ('/login') if session[:email].nil?
+  if session[:email].nil?
+    flash[:danger] = 'ログインに失敗しました'
+    redirect to ('/login')
+  end
+
+  flash[:notice] = 'ログインしました'
   redirect to ('/')
 end
 
 post '/logout' do
+  reset_flashes
   session[:email] = nil
+  flash[:notice] = 'ログアウトしました'
   redirect to ('/login')
 end
 
@@ -118,22 +141,22 @@ get "/users/:user_account" do
   erb :mypage
 end
 
-#プロフィール編集
-# get "/users/:user_account/edit" do
-#   @user = find_user_by_account(params[:user_account])
-#   erb :mypage_edit
-# end
-
 get "/profile_edit" do
   redirect to ('/login') unless logged_in?
   erb :mypage_edit
 end
 
 post "/profile_edit" do
+  reset_flashes
   user = $db.exec_params('SELECT * FROM users WHERE email = $1', [session[:email]]).first
-  redirect to ('/') unless current_user?(user)
+
+  # unless current_user?(user)
+  #   flash[:danger] = 'ログインしてください'
+  #   redirect to ('/')
+  # end
 
   $db.exec_params('UPDATE users SET nickname = $1, profile = $2 WHERE id = $3', [params[:nickname], params[:profile], user['id']])
+  flash[:notice] = 'プロフィール更新しました'
   redirect to ("/users/#{current_user['account']}")
 end
 
@@ -153,6 +176,7 @@ end
 
 # 新規漫画投稿
 post '/comic' do
+  reset_flashes
   # comicデータの保存
   $db.exec_params('INSERT INTO comics (user_id, title, bio, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [current_user['id'], params[:title], params[:bio], Time.now, Time.now])
   comic = $db.exec_params('SELECT * FROM comics ORDER BY id DESC LIMIT 1').first
@@ -179,19 +203,23 @@ post '/comic' do
     $db.exec_params('UPDATE comics SET updated_at = $1 WHERE id = $2', [Time.now, comic['id']]) if index == 3
   end
 
+  flash[:notice] = '投稿しました'
   redirect to ("/comics/#{current_user['account']}/#{comic['id']}")
 end
 
 # comic削除
 delete '/comics/:comic_id' do
+  reset_flashes
   $db.exec_params('DELETE FROM pages WHERE comic_id = $1', [params[:comic_id]])
   $db.exec_params('DELETE FROM comics WHERE id = $1', [params[:comic_id]])
 
+  flash[:notice] = 'コミック削除しました'
   redirect to ("/users/#{current_user['account']}")
 end
 
 # page追加
 post '/pages/:comic_id' do
+  reset_flashes
   # 画像の保存
   filename = "#{current_user['id']}_#{params[:comic_id]}_#{params[:page_number]}"
   current_file_path = params[:file][:tempfile]
@@ -203,11 +231,15 @@ post '/pages/:comic_id' do
   #db保存
   $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], move_file_path, Time.now, Time.now])
   $db.exec_params('UPDATE comics SET updated_at = $1 WHERE id = $2', [Time.now, params[:comic_id]])
+
+  flash[:notice] = 'ページを追加しました'
   redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
 end
 
 # page削除
 delete '/page/:comic_id/:page_id' do
+  reset_flashes
   $db.exec_params('DELETE FROM pages WHERE id = $1', [params[:page_id]])
+  flash[:notice] = 'ページ削除しました'
   redirect to ("comics/#{current_user['account']}/#{params['comic_id']}")
 end
