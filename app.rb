@@ -149,13 +149,9 @@ end
 post "/profile_edit" do
   reset_flashes
   user = $db.exec_params('SELECT * FROM users WHERE email = $1', [session[:email]]).first
+  profile = params[:profile].gsub(/\r\n|\r|\n/, "<br />") # 改行に対する処理
 
-  # unless current_user?(user)
-  #   flash[:danger] = 'ログインしてください'
-  #   redirect to ('/')
-  # end
-
-  $db.exec_params('UPDATE users SET nickname = $1, profile = $2 WHERE id = $3', [params[:nickname], params[:profile], user['id']])
+  $db.exec_params('UPDATE users SET nickname = $1, profile = $2 WHERE id = $3', [params[:nickname], profile, user['id']])
   flash[:notice] = 'プロフィール更新しました'
   redirect to ("/users/#{current_user['account']}")
 end
@@ -178,7 +174,8 @@ end
 post '/comic' do
   reset_flashes
   # comicデータの保存
-  $db.exec_params('INSERT INTO comics (user_id, title, bio, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [current_user['id'], params[:title], params[:bio], Time.now, Time.now])
+  bio = params[:bio].gsub(/\r\n|\r|\n/, "<br />") # 改行に対する処理
+  $db.exec_params('INSERT INTO comics (user_id, title, bio, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [current_user['id'], params[:title], bio, Time.now, Time.now])
   comic = $db.exec_params('SELECT * FROM comics ORDER BY id DESC LIMIT 1').first
 
   # page画像データの保存
