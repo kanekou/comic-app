@@ -184,15 +184,11 @@ post '/comic' do
 
   page_params.each_with_index do |page_param, index|
     page_name = "#{current_user['id']}_#{comic['id']}_#{index+1}"
-
-    if page_param.nil?
-      move_file_path = ""
-    else
-      current_file_path = page_param[:tempfile]
-      file_type = page_param[:type].split('/').last
-      move_file_path = "/image/#{page_name}.#{file_type}"
-      FileUtils.mv(current_file_path, "./public/#{move_file_path}")
-    end
+    next if page_param.nil?
+    current_file_path = page_param[:tempfile]
+    file_type = page_param[:type].split('/').last
+    move_file_path = "/image/#{page_name}.#{file_type}"
+    FileUtils.mv(current_file_path, "./public/#{move_file_path}")
 
     $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index+1, move_file_path, Time.now, Time.now])
 
