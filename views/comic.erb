@@ -1,6 +1,12 @@
 <main>
   <h1 class="text-center mb-3 mt-3"><%= @comic['title'] %> </h1>
-  <h3 class="text-center mb-5">作者: <%= @user['nickname'] %>@<%= @user['account'] %> </h3>
+  <div style="text-align: center">
+    <h3 class="mb-5" style="display: inline">作者: <%= @user['nickname'] %>@<%= @user['account'] %></h3>
+    <a class="btn btn-info btn-sm ml-3 mb-2" href="/users/<%= params[:user_account] %> " role="button">作品一覧</a>
+  </div>
+
+  <br>
+
   <div class="box8">
     <h3 class="text-center mb-5">あらすじ</h3>
     <p><%= @comic['bio'] %></p>
