@@ -58,6 +58,18 @@ helpers do
     flash[:danger] = nil
     flash[:notice] = nil
   end
+
+  require "uri"
+
+  def text_url_to_link text
+    URI.extract(text, ['https']).uniq.each do |url|
+      sub_text = ""
+      sub_text << "<a href=" << url << " target=\"_blank\">" << url << "</a>"
+      text.gsub!(url, sub_text)
+    end
+
+    return text
+  end
 end
 
 get '/' do
