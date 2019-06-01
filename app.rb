@@ -60,14 +60,12 @@ helpers do
   end
 
   require "uri"
-
   def text_url_to_link text
     URI.extract(text, ['https']).uniq.each do |url|
       sub_text = ""
       sub_text << "<a href=" << url << " target=\"_blank\">" << url << "</a>"
       text.gsub!(url, sub_text)
     end
-
     return text
   end
 end
@@ -87,7 +85,6 @@ post '/signup' do
   end
 
   reset_flashes
-
   account = params[:account]
   nickname = params[:nickname]
   email = params[:email]
@@ -125,14 +122,13 @@ post '/login' do
   end
 
   reset_flashes
-
   email = params[:email]
   password = params[:password]
 
   session[:email] = email if user_authenticate(email, password)
 
   if session[:email].nil?
-    flash[:danger] = 'ログインに失敗しました'
+    flash[:danger] = 'メールアドレスまたはパスワードが異なります'
     redirect to ('/login')
   end
 
@@ -154,7 +150,12 @@ get "/users/:user_account" do
 end
 
 get "/profile_edit" do
-  redirect to ('/login') unless logged_in?
+  unless logged_in?
+    reset_flashes
+    flash[:danger] = 'ログインしていません'
+    redirect to ('/login')
+  end
+
   erb :mypage_edit
 end
 
@@ -164,7 +165,7 @@ post "/profile_edit" do
   profile = params[:profile].gsub(/\r\n|\r|\n/, "<br />") # 改行に対する処理
 
   $db.exec_params('UPDATE users SET nickname = $1, profile = $2 WHERE id = $3', [params[:nickname], profile, user['id']])
-  flash[:notice] = 'プロフィール更新しました'
+  flash[:notice] = 'プロフィール情報を更新しました'
   redirect to ("/users/#{current_user['account']}")
 end
 
@@ -178,7 +179,12 @@ end
 
 # 漫画投稿ページ
 get '/post_comic' do
-  redirect to ('/') unless logged_in?
+  unless logged_in?
+    reset_flashes
+    flash[:danger] = 'ログインしていません'
+    redirect to ('/login')
+  end
+
   erb :post_comic
 end
 
@@ -210,6 +216,29 @@ post '/comic' do
 
   flash[:notice] = '投稿しました'
   redirect to ("/comics/#{current_user['account']}/#{comic['id']}")
+end
+
+# comic編集ページ
+get '/comics_edit/:user_account/:comic_id' do
+  @user = find_user_by_account(params[:user_account])
+  @comic = find_comic(params[:comic_id])
+
+  unless current_user?(@user)
+    reset_flashes
+    flash[:danger] = '編集権限がありません'
+    redirect to ('/login')
+  end
+
+  erb :comic_edit
+end
+
+# comic編集
+post '/comics/:comic_id' do
+  reset_flashes
+  bio = params[:bio].gsub(/\r\n|\r|\n/, "<br />") # 改行に対する処理
+  $db.exec_params('UPDATE comics SET title = $1, bio = $2, updated_at = $3 WHERE id = $4', [params[:title], bio, Time.now, params[:comic_id]])
+  flash[:notice] = '編集しました'
+  redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
 end
 
 # comic削除

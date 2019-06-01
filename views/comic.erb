@@ -8,7 +8,20 @@
   <br>
 
   <div class="box8">
-    <h3 class="text-center mb-4">あらすじ</h3>
+    <div class="row">
+      <div class="col-sm-2">
+      </div>
+      <div class="col-sm-8">
+        <div style="text-align: center">
+          <h3 class="mb-4" style="display: inline">あらすじ</h3>
+        </div>
+      </div>
+      <div class="col-sm-2">
+      <% if current_user?(@user) %>
+        <a class="btn btn-warning btn-sm ml-3" href="/comics_edit/<%= params[:user_account] %>/<%= @comic['id'] %>" role="button" style="margin-bottom: 14px">編集</a>
+      <%end %>
+      </div>
+    </div>
     <p><%= @comic['bio'] %></p>
   </div>
 

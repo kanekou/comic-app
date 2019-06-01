@@ -9,17 +9,17 @@
           <div class="form-group">
             <div class="input-group">
               <div class="input-group-prepend">
-                <span class="input-group-text"> <i class="fa fa-user"></i> </span>
+                <span class="input-group-text"> <i class="fas fa-smile"></i>  </span>
               </div>
-              <input type="text" name="nickname" id="nickname" class="form-control" placeholder="ニックネーム"/>
+              <input type="text" name="nickname" id="nickname" class="form-control" value="<%= current_user['nickname'] %>" placeholder="ニックネーム"/>
             </div> <!-- input-group.// -->
           </div> <!-- form-group// -->
           <div class="form-group">
             <div class="input-group">
               <div class="input-group-prepend">
-                <span class="input-group-text"> <i class="fa fa-user"></i> </span>
+                <span class="input-group-text"> <i class="fas fa-id-badge"></i>  </span>
               </div>
-              <textarea type="text" name="profile" class="form-control" placeholder="プロフィール" wrap="hard" rows="3" cols="50"></textarea>
+              <textarea type="text" name="profile" class="form-control" placeholder="プロフィール" wrap="hard" rows="3" cols="50"><%= current_user['profile'] %></textarea>
             </div> <!-- input-group.// -->
           </div> <!-- form-group// -->
           <div class="form-group">

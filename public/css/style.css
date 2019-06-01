@@ -66,3 +66,22 @@ h1 {
  padding: .5em;
  text-align: center;
 }
+
+.ribbon7 {
+  display: inline-block;
+  position: relative;
+  padding: 15px 20px;
+  font-size: 18px;/*フォントサイズ*/
+  color: #FFF;/*フォントカラー*/
+  background: #a6d3c8;/*リボンの色*/
+}
+
+.ribbon7:before {
+  position: absolute;
+  content: '';
+  top: 100%;
+  left: 0;
+  border: none;
+  border-bottom: solid 15px transparent;
+  border-right: solid 20px rgb(149, 158, 155);/*折り返し部分*/
+}
