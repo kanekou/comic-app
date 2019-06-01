@@ -172,7 +172,8 @@ end
 get '/comics/:user_account/:comic_id' do
   @user = find_user_by_account(params[:user_account])
   @comic = find_comic(params[:comic_id])
-  @pages = $db.exec_params('SELECT * FROM pages WHERE comic_id = $1', [params[:comic_id]])
+  pages = $db.exec_params('SELECT * FROM pages WHERE comic_id = $1', [params[:comic_id]])
+  @pages = pages.sort_by { |page| page["page_number"] } #表示順番を整える．
 
   erb :comic
 end
@@ -259,7 +260,7 @@ post '/pages/:comic_id' do
   current_file_path = params[:file][:tempfile]
   file_type = params[:file][:type].split('/').last
   move_file_path = "/image/#{filename}.#{file_type}"
-
+  FileUtils.rm("./public/#{move_file_path}") if FileTest.exists?("./public/#{move_file_path}")   # 同じファイルが存在したら元の画像を削除する．
   FileUtils.mv(current_file_path, "./public/#{move_file_path}")
 
   #db保存
@@ -276,4 +277,26 @@ delete '/page/:comic_id/:page_id' do
   $db.exec_params('DELETE FROM pages WHERE id = $1', [params[:page_id]])
   flash[:notice] = 'ページ削除しました'
   redirect to ("comics/#{current_user['account']}/#{params['comic_id']}")
+end
+
+post '/bookmark' do
+  reset_flashes
+  # Bookmarkしたページが消されたor存在しない場合
+  if $db.exec_params('SELECT id FROM pages WHERE comic_id = $1 AND page_number = $2', [params[:comic_id], params[:page_number]]).first.nil?
+    flash[:danger] = "対象のページが存在しません"
+    redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
+  end
+
+  page_id = $db.exec_params('SELECT id FROM pages WHERE comic_id = $1 AND page_number = $2', [params[:comic_id], params[:page_number]]).first['id']
+
+  # userが対象comicに対してしおりをつけたことがある場合
+  unless $db.exec_params('SELECT id FROM bookmarks WHERE user_id = $1 AND comic_id = $2', [current_user['id'], params[:comic_id]]).first.nil?
+    $db.exec_params('UPDATE bookmarks SET page_id = $1 WHERE user_id = $2 AND comic_id = $3', [page_id, current_user['id'], params[:comic_id]])
+  else # userがしおりをつけたことがないか，対象comicに対してしおりをつけたことがない場合
+    binding.pry
+    $db.exec_params('INSERT INTO bookmarks (user_id, comic_id, page_id) VALUES($1, $2, $3)', [current_user['id'], params[:comic_id], page_id])
+  end
+
+  flash[:notice] = "#{params[:page_number]}ページ目にしおりを挟みました"
+  redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
 end

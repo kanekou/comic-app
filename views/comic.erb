@@ -19,7 +19,7 @@
       <div class="col-sm-2">
       <% if current_user?(@user) %>
         <a class="btn btn-warning btn-sm ml-3" href="/comics_edit/<%= params[:user_account] %>/<%= @comic['id'] %>" role="button" style="margin-bottom: 14px">編集</a>
-      <%end %>
+      <% end %>
       </div>
     </div>
     <p><%= @comic['bio'] %></p>
@@ -49,7 +49,7 @@
   <% end %>
       <img class="d-block img-thumbnail" src="<%= page['imagefile'] %>" data-holder-rendered="true" style="height: 700px; margin: auto;">
     </div>
-  <% end %>
+<% end %>
   </div>
 
   <a class="carousel-control-prev ml-lg-5" href="#carouselExampleIndicators" role="button" data-slide="prev">
@@ -61,6 +61,13 @@
     <span class="sr-only">Next</span>
   </a>
   </div>
+
+  <%# しおり %>
+  <form action="/bookmark" method="POST">
+    <input type="hidden" name="comic_id" value="<%= @comic['id'] %>"/>
+    <input size="1" type="text" name="page_number"/>
+    <button type="submit" class="btn btn-info">送信する</button>
+  </form>
 
   <br>
   <h3 style="text-align: center">ページ一覧</h3>
@@ -78,6 +85,7 @@
     </form>
   </div>
   <% end %>
+
 
   <br>
   <br>
