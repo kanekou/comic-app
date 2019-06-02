@@ -53,6 +53,10 @@ helpers do
     return last_page_number.to_i
   end
 
+  def find_page_number(page_id)
+    $db.exec_params('SELECT page_number FROM pages WHERE id = $1',[page_id]).first['page_number']
+  end
+
   # flash情報のリセット
   def reset_flashes
     flash[:danger] = nil
@@ -175,12 +179,12 @@ get '/comics/:user_account/:comic_id' do
   pages = $db.exec_params('SELECT * FROM pages WHERE comic_id = $1', [params[:comic_id]])
   @pages = pages.sort_by { |page| page["page_number"] } #表示順番を整える．
 
-  bookmark = $db.exec_params('SELECT * FROM bookmarks WHERE user_id = $1 AND comic_id = $2', [current_user['id'], params[:comic_id]]).first
+  @bookmark = $db.exec_params('SELECT * FROM bookmarks WHERE user_id = $1 AND comic_id = $2', [current_user['id'], params[:comic_id]]).first
 
-  if bookmark.nil?
+  if @bookmark.nil?
     @bookmark_page_number = 1
   else
-    @bookmark_page_number = $db.exec_params('SELECT * FROM pages WHERE id = $1 AND comic_id = $2', [bookmark['page_id'], bookmark['comic_id']]).first['page_number'].to_i
+    @bookmark_page_number = $db.exec_params('SELECT * FROM pages WHERE id = $1 AND comic_id = $2', [@bookmark['page_id'], @bookmark['comic_id']]).first['page_number'].to_i
   end
 
   erb :comic
@@ -290,7 +294,6 @@ end
 post '/bookmark' do
   reset_flashes
 
-  binding.pry
   # Bookmarkしたページが消されたor存在しない場合
   if $db.exec_params('SELECT id FROM pages WHERE comic_id = $1 AND page_number = $2', [params[:comic_id], params[:page_number]]).first.nil?
     flash[:danger] = "対象のページが存在しません"
