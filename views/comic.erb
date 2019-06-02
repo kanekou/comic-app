@@ -47,6 +47,7 @@
       <div style="text-align: center;  margin-top: 20px;" >
         <h3 class="mb-4" style="display: inline"></h3>
         <form action="/bookmark" method="post">
+          <input type="hidden" name="user_account" value="<%= @user['account'] %>"/>
           <input type="hidden" name="comic_id" value="<%= @comic['id'] %>"/>
           <input type="hidden" name="page_number" id="send_bookmark_page" />
           <button type="submit" class="btn btn-success btn-lg">しおりを挟む</button>

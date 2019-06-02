@@ -297,7 +297,7 @@ post '/bookmark' do
   # Bookmarkしたページが消されたor存在しない場合
   if $db.exec_params('SELECT id FROM pages WHERE comic_id = $1 AND page_number = $2', [params[:comic_id], params[:page_number]]).first.nil?
     flash[:danger] = "対象のページが存在しません"
-    redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
+    redirect to ("/comics/#{params[:user_account]}/#{params[:comic_id]}")
   end
 
   page_id = $db.exec_params('SELECT id FROM pages WHERE comic_id = $1 AND page_number = $2', [params[:comic_id], params[:page_number]]).first['id']
@@ -310,5 +310,5 @@ post '/bookmark' do
   end
 
   flash[:notice] = "#{params[:page_number]}ページ目にしおりを挟みました"
-  redirect to ("/comics/#{current_user['account']}/#{params[:comic_id]}")
+  redirect to ("/comics/#{params[:user_account]}/#{params[:comic_id]}")
 end
