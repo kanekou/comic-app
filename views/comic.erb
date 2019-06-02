@@ -35,7 +35,11 @@
       <div class="ribbon14-wrapper" style = "margin-right: 30px;">
         <span class="ribbon14">★</span>
         <div class="mt-3">
+        <% if @bookmark.nil? %>
+          <p class="ml-4"> しおり: 1 ページ目</p>
+        <% else %>
           <p class="ml-4"> しおり: <%= find_page_number(@bookmark['page_id'])%> ページ目</p>
+        <% end %>
         </div>
       </div>
     </div>
@@ -136,22 +140,28 @@
         </div>
       </div>
       page: <%= page['page_number'] %>
-      <% if current_user?(@user)  %>
+
+      <% if current_user?(@user) %>
       <div class="caption">
+        <% unless @bookmark.nil? || find_page_number(@bookmark['page_id']) != page['page_number'] %>
         <p>
           <div style="display:inline-flex">
-        <% if find_page_number(@bookmark['page_id']) == page['page_number'] %>
             <button type="submit" class="btn btn-success btn-xs disabled">しおり</button>
-        <% else%>
+          </div>
+        </p>
+        <% else %>
+        <p>
+          <div style="display:inline-flex">
             <form method="POST" action="/page/<%= @comic['id'] %>/<%= page['id'] %>">
               <input type="hidden" name="_method" value="DELETE">
               <button type="submit" class="btn btn-danger btn-xs">削除</button>
             </form>
-        <% end %>
           </div>
         </p>
+        <% end %>
       </div>
       <% end %>
+
     </div>
     <% end %>
   </div>

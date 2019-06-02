@@ -179,7 +179,7 @@ get '/comics/:user_account/:comic_id' do
   pages = $db.exec_params('SELECT * FROM pages WHERE comic_id = $1', [params[:comic_id]])
   @pages = pages.sort_by { |page| page["page_number"] } #表示順番を整える．
 
-  @bookmark = $db.exec_params('SELECT * FROM bookmarks WHERE user_id = $1 AND comic_id = $2', [current_user['id'], params[:comic_id]]).first
+  @bookmark = $db.exec_params('SELECT * FROM bookmarks WHERE user_id = $1 AND comic_id = $2', [current_user['id'], params[:comic_id]]).first if logged_in?
 
   if @bookmark.nil?
     @bookmark_page_number = 1
