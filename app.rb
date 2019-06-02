@@ -175,6 +175,14 @@ get '/comics/:user_account/:comic_id' do
   pages = $db.exec_params('SELECT * FROM pages WHERE comic_id = $1', [params[:comic_id]])
   @pages = pages.sort_by { |page| page["page_number"] } #表示順番を整える．
 
+  bookmark = $db.exec_params('SELECT * FROM bookmarks WHERE user_id = $1 AND comic_id = $2', [current_user['id'], params[:comic_id]]).first
+
+  if bookmark.nil?
+    @bookmark_page_number = 1
+  else
+    @bookmark_page_number = $db.exec_params('SELECT * FROM pages WHERE id = $1 AND comic_id = $2', [bookmark['page_id'], bookmark['comic_id']]).first['page_number'].to_i
+  end
+
   erb :comic
 end
 
@@ -281,6 +289,8 @@ end
 
 post '/bookmark' do
   reset_flashes
+
+  binding.pry
   # Bookmarkしたページが消されたor存在しない場合
   if $db.exec_params('SELECT id FROM pages WHERE comic_id = $1 AND page_number = $2', [params[:comic_id], params[:page_number]]).first.nil?
     flash[:danger] = "対象のページが存在しません"
@@ -293,7 +303,6 @@ post '/bookmark' do
   unless $db.exec_params('SELECT id FROM bookmarks WHERE user_id = $1 AND comic_id = $2', [current_user['id'], params[:comic_id]]).first.nil?
     $db.exec_params('UPDATE bookmarks SET page_id = $1 WHERE user_id = $2 AND comic_id = $3', [page_id, current_user['id'], params[:comic_id]])
   else # userがしおりをつけたことがないか，対象comicに対してしおりをつけたことがない場合
-    binding.pry
     $db.exec_params('INSERT INTO bookmarks (user_id, comic_id, page_id) VALUES($1, $2, $3)', [current_user['id'], params[:comic_id], page_id])
   end
 

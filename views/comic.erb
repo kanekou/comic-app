@@ -42,11 +42,14 @@
 
   <div class="carousel-inner" role="listbox">
 <% @pages.each_with_index do |page, index| %>
-  <% if page['page_number'].to_i == 1 %>
+  <%# しおりのページからスライド開始する %>
+  <% if page['page_number'].to_i == @bookmark_page_number %>
     <div class="carousel-item active">
   <% else %>
     <div class="carousel-item">
   <% end %>
+      <%# しおりページをjsへ渡す %>
+      <input class="current_slide_index<%= index %>" type="hidden" name="current_slide_index" value="<%= page['page_number'].to_i %>"/>
       <img class="d-block img-thumbnail" src="<%= page['imagefile'] %>" data-holder-rendered="true" style="height: 700px; margin: auto;">
     </div>
 <% end %>
@@ -66,6 +69,12 @@
   <form action="/bookmark" method="POST">
     <input type="hidden" name="comic_id" value="<%= @comic['id'] %>"/>
     <input size="1" type="text" name="page_number"/>
+    <button type="submit" class="btn btn-info">送信する</button>
+  </form>
+
+  <form action="/bookmark" method="POST">
+    <input type="hidden" name="comic_id" value="<%= @comic['id'] %>"/>
+    <input type="hidden" name="page_number" id="send_bookmark_page" />
     <button type="submit" class="btn btn-info">送信する</button>
   </form>
 
@@ -146,4 +155,14 @@
         $('#files').trigger('click');
     });
  });
+
+ $( '#carouselExampleIndicators' ).on( 'slid.bs.carousel', function() {
+    if ( $(".carousel-item").hasClass( 'active' ) ) { //activeなslideを取得
+      index = $('div.active').index()
+      bookmark_page_number = $(`.current_slide_index${index}`).val(); //activeなpage番号を取得
+      $("#send_bookmark_page").val(bookmark_page_number);  // activeなpage_numberの値に書き換え
+    }else {
+      console.log("no catch");
+    }
+  });
 </script>
