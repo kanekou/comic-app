@@ -14,7 +14,7 @@
     <% unless find_title_page(comic['id']).nil? %>
     <div style="text-align: center">
       <a href="/comics/<%= @user['account'] %>/<%= comic['id'] %>">
-        <img src='<%= find_title_page(comic['id']) %>' width="300" height="200" alt="Card-image">
+        <img src='<%= find_title_page(comic['id']) %>' width="200" alt="Card-image">
       </a>
     <% end %>
     </div>

@@ -28,6 +28,7 @@
   <br>
   <br>
 
+<% if logged_in? %>
   <div class="row">
     <div class="col-sm-3">
     </div>
@@ -57,6 +58,7 @@
     <div class="col-sm-3">
     </div>
   </div>
+<% end %>
 
 <div>
   <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel" data-interval="false">
@@ -131,7 +133,7 @@
         <div class="modal-dialog modal-lg modal-middle">
           <div class="modal-content">
             <div class="modal-body" style="margin: auto">
-              <img src='<%= page["imagefile"]%>' width="600" height="400" class="aligncenter size-full wp-image-425" />
+              <img src='<%= page["imagefile"]%>' width="600" class="aligncenter size-full wp-image-425" />
             </div>
             <div class="modal-img_footer">
               <p> page: <%= page["page_number"] %> </p>

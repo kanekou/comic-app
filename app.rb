@@ -257,6 +257,7 @@ end
 # comic削除
 delete '/comics/:comic_id' do
   reset_flashes
+  $db.exec_params('DELETE FROM bookmarks WHERE comic_id = $1', [params[:comic_id]])
   $db.exec_params('DELETE FROM pages WHERE comic_id = $1', [params[:comic_id]])
   $db.exec_params('DELETE FROM comics WHERE id = $1', [params[:comic_id]])
 
