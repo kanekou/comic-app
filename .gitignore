@@ -1,4 +1,4 @@
 ./db/
-/public/image/
 !.gitkeep
+/public/image/*
 .DS_Store
