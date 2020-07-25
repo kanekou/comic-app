@@ -1,6 +1,6 @@
-CREATE DATABASE comics_app;
-
-\c comics_app
+-- CREATE DATABASE comics_app;
+--
+-- \c comics_app
 
 CREATE TABLE users (
   id SERIAL NOT NULL PRIMARY KEY ,
@@ -10,7 +10,7 @@ CREATE TABLE users (
   password VARCHAR( 60 ) NOT NULL ,
   password_solt VARCHAR NOT NULL ,
   profile VARCHAR( 150 ) ,
-  UNIQUE (account)
+  UNIQUE (account),
   UNIQUE (email)
 );
 

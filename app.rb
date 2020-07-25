@@ -12,7 +12,7 @@ use Rack::Flash
 
 $db = PG::connect(
   :host => "localhost",
-  :user => 'e165726', :password => '',
+  :user => 'e165726', :password => 'password',
   :dbname => "comics_app"
   )
 
