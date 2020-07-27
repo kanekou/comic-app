@@ -20,7 +20,7 @@ CREATE TABLE comics (
   title VARCHAR( 100 ) NOT NULL ,
   bio VARCHAR( 150 ),
   created_at timestamp with time zone NOT NULL,
-  uploaded_at timestamp with time zone NOT NULL
+  updated_at timestamp with time zone NOT NULL
 );
 
 CREATE TABLE pages (
@@ -29,7 +29,7 @@ CREATE TABLE pages (
   page_number int ,
   imagefile VARCHAR( 50 ),
   created_at timestamp with time zone NOT NULL,
-  uploaded_at timestamp with time zone NOT NULL
+  updated_at timestamp with time zone NOT NULL
 );
 
 CREATE TABLE bookmarks (
