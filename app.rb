@@ -13,8 +13,8 @@ use Rack::Flash
 $db = PG.connect(
   # :host => "localhost",
   # :user => 'kanekou',
-  # :dbname => "comics_app"
-  url: ENV['DATABASE_URL']
+	# :dbname => "comics_app"
+  ENV['DATABASE_URL']
 )
 
 helpers do
