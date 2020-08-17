@@ -1,7 +1,7 @@
 # comic-app 仕様書
 気軽に漫画を投稿できるサービス
 
-# Deploy URL
+## Deploy URL
 https://shrouded-castle-37624.herokuapp.com/users/hoge
 
 ## 要件定義
