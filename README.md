@@ -1,6 +1,9 @@
 # comic-app 仕様書
 気軽に漫画を投稿できるサービス
 
+# Deploy URL
+https://shrouded-castle-37624.herokuapp.com/users/hoge
+
 ## 要件定義
 - ピクシブ風アプリ
 - 自身が投稿した漫画を管理できる．
