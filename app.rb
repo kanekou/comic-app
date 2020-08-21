@@ -234,10 +234,26 @@ post '/comic' do
     page_name = "#{current_user['id']}_#{comic['id']}_#{index + 1}"
     next if page_param.nil?
 
+    # TODO: S3
     current_file_path = page_param[:tempfile]
     file_type = page_param[:type].split('/').last
     move_file_path = "/image/#{page_name}.#{file_type}"
     FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+
+    # 画像の保存
+    # s3.put_object(
+    #   bucket: ENV['AWS_S3_BUCKET'],
+    #   key: move_file_path,
+    #   body: current_file_path,
+    #   content_type: "image/jpegput",
+    #   metadata: {}
+    # )
+    # アクセスを公開に設定する
+    # s3.put_object_acl({
+    #   acl: "public-read",
+    #   bucket: ENV['AWS_S3_BUCKET'],
+    #   key: move_file_path,
+    # })
 
     $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index + 1, move_file_path, Time.now, Time.now])
 
@@ -290,11 +306,29 @@ post '/pages/:comic_id' do
   filename = "#{current_user['id']}_#{params[:comic_id]}_#{params[:page_number]}"
   current_file_path = params[:file][:tempfile]
   file_type = params[:file][:type].split('/').last
+
+  # TODO: S3
   move_file_path = "/image/#{filename}.#{file_type}"
   if FileTest.exists?("./public/#{move_file_path}")
     FileUtils.rm("./public/#{move_file_path}")
   end # 同じファイルが存在したら元の画像を削除する．
   FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+
+  # 画像の保存
+  # s3.put_object(
+  #   bucket: ENV['AWS_S3_BUCKET'],
+  #   key: move_file_path,
+  #   body: current_file_path,
+  #   content_type: "image/jpegput",
+  #   metadata: {}
+  # )
+  # アクセスを公開に設定する
+  # s3.put_object_acl({
+  #   acl: "public-read",
+  #   bucket: ENV['AWS_S3_BUCKET'],
+  #   key: move_file_path,
+  # })
+
 
   # db保存
   $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], move_file_path, Time.now, Time.now])
