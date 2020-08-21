@@ -1,21 +1,32 @@
 require 'sinatra'
-require 'sinatra/reloader'
-require 'dotenv/load'
 require 'pg'
 require 'pry'
 require 'bcrypt'
 require 'rack/flash'
+if development?
+  require 'sinatra/reloader'
+  require 'dotenv/load'
+end
 
 use Rack::MethodOverride
 enable :sessions
 use Rack::Flash
 
 $db = PG.connect(
-  # :host => "localhost",
-  # :user => 'kanekou',
-	# :dbname => "comics_app"
+  # host: "localhost",
+  # user: 'kanekou',
+  # dbname: "comics_app"
   ENV['DATABASE_URL']
 )
+
+# AWS S3 への接続クライアント
+def s3
+  @s3 ||= Aws::S3::Client.new(
+    region: 'us-east-2',
+    access_key_id: ENV['AWS_S3_ACCESS_KEY_ID'],
+    secret_access_key: ENV['AWS_S3_SECRET_ACCESS_KEY']
+  )
+end
 
 helpers do
   # 現在ログイン中のユーザーを返す (いる場合)
