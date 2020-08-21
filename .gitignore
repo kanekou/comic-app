@@ -2,3 +2,4 @@
 /public/image/*
 .DS_Store
 !.gitkeep
+.env
