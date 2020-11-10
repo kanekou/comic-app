@@ -3,6 +3,7 @@ require 'pg'
 require 'pry'
 require 'bcrypt'
 require 'rack/flash'
+require 'aws-sdk-s3'
 if development?
   require 'sinatra/reloader'
   require 'dotenv/load'
@@ -13,18 +14,24 @@ enable :sessions
 use Rack::Flash
 
 $db = PG.connect(
-  # host: "localhost",
-  # user: 'kanekou',
-  # dbname: "comics_app"
-  ENV['DATABASE_URL']
+  host: "localhost",
+  user: 'kanekou',
+  dbname: "comics_app"
+  # ENV['DATABASE_URL']
 )
 
 # AWS S3 への接続クライアント
 def s3
-  @s3 ||= Aws::S3::Client.new(
-    region: 'us-east-2',
-    access_key_id: ENV['AWS_S3_ACCESS_KEY_ID'],
-    secret_access_key: ENV['AWS_S3_SECRET_ACCESS_KEY']
+  @s3 ||= Aws::S3::Resource.new(
+          region: 'ap-northeast-1', # リージョン東京
+          credentials: Aws::Credentials.new(
+              ENV['AWS_S3_ACCESS_KEY_ID'], # S3用アクセスキー
+              ENV['AWS_S3_SECRET_ACCESS_KEY'] # S3用シークレットアクセスキー
+          )
+    #   Aws::S3::Client.new(
+    # region: 'us-east-2',
+    # access_key_id: ENV['AWS_S3_ACCESS_KEY_ID'],
+    # secret_access_key: ENV['AWS_S3_SECRET_ACCESS_KEY']
   )
 end
 
@@ -238,9 +245,18 @@ post '/comic' do
     current_file_path = page_param[:tempfile]
     file_type = page_param[:type].split('/').last
     move_file_path = "/image/#{page_name}.#{file_type}"
-    FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+    key_name = SecureRandom.hex.to_s
+    # FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+    # @s3 = Aws::S3::Resource.new(
+    #   region: 'ap-northeast-1', # リージョン東京
+    #   credentials: Aws::Credentials.new(
+    #       ENV['AWS_S3_ACCESS_KEY_ID'], # S3用アクセスキー
+    #       ENV['AWS_S3_SECRET_ACCESS_KEY'] # S3用シークレットアクセスキー
+    #   )
+    # )
 
-    # 画像の保存
+    # binding.pry
+    # # 画像の保存
     # s3.put_object(
     #   bucket: ENV['AWS_S3_BUCKET'],
     #   key: move_file_path,
@@ -248,14 +264,22 @@ post '/comic' do
     #   content_type: "image/jpegput",
     #   metadata: {}
     # )
+
+    s3.bucket(ENV['AWS_S3_BUCKET'])
+        .object(key_name)
+        .put(body: current_file_path, content_type: file_type, acl: 'public-read')
+
     # アクセスを公開に設定する
-    # s3.put_object_acl({
+    # s3.put({
     #   acl: "public-read",
     #   bucket: ENV['AWS_S3_BUCKET'],
     #   key: move_file_path,
     # })
 
-    $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index + 1, move_file_path, Time.now, Time.now])
+    s3_image_path = s3.bucket(ENV['AWS_S3_BUCKET']).object(key_name).public_url
+
+    $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index + 1, s3_image_path, Time.now, Time.now])
+    # $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index + 1, move_file_path, Time.now, Time.now])
 
     # comicの更新日時を更新
     $db.exec_params('UPDATE comics SET updated_at = $1 WHERE id = $2', [Time.now, comic['id']]) if index == 3
