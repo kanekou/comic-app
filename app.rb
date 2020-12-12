@@ -28,10 +28,6 @@ def s3
               ENV['AWS_S3_ACCESS_KEY_ID'], # S3用アクセスキー
               ENV['AWS_S3_SECRET_ACCESS_KEY'] # S3用シークレットアクセスキー
           )
-    #   Aws::S3::Client.new(
-    # region: 'us-east-2',
-    # access_key_id: ENV['AWS_S3_ACCESS_KEY_ID'],
-    # secret_access_key: ENV['AWS_S3_SECRET_ACCESS_KEY']
   )
 end
 
@@ -297,35 +293,17 @@ end
 post '/pages/:comic_id' do
   reset_flashes
   # 画像の保存
-  filename = "#{current_user['id']}_#{params[:comic_id]}_#{params[:page_number]}"
   current_file_path = params[:file][:tempfile]
   file_type = params[:file][:type].split('/').last
+  key_name = SecureRandom.hex.to_s
 
-  # TODO: S3
-  move_file_path = "/image/#{filename}.#{file_type}"
-  if FileTest.exists?("./public/#{move_file_path}")
-    FileUtils.rm("./public/#{move_file_path}")
-  end # 同じファイルが存在したら元の画像を削除する．
-  FileUtils.mv(current_file_path, "./public/#{move_file_path}")
-
-  # 画像の保存
-  # s3.put_object(
-  #   bucket: ENV['AWS_S3_BUCKET'],
-  #   key: move_file_path,
-  #   body: current_file_path,
-  #   content_type: "image/jpegput",
-  #   metadata: {}
-  # )
-  # アクセスを公開に設定する
-  # s3.put_object_acl({
-  #   acl: "public-read",
-  #   bucket: ENV['AWS_S3_BUCKET'],
-  #   key: move_file_path,
-  # })
-
+  s3.bucket(ENV['AWS_S3_BUCKET'])
+      .object(key_name)
+      .put(body: current_file_path, content_type: file_type, acl: 'public-read')
+  s3_image_path = s3.bucket(ENV['AWS_S3_BUCKET']).object(key_name).public_url
 
   # db保存
-  $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], move_file_path, Time.now, Time.now])
+  $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], s3_image_path, Time.now, Time.now])
   $db.exec_params('UPDATE comics SET updated_at = $1 WHERE id = $2', [Time.now, params[:comic_id]])
 
   flash[:notice] = 'ページを追加しました'
