@@ -1,21 +1,35 @@
 require 'sinatra'
-require 'sinatra/reloader'
-require 'dotenv/load'
 require 'pg'
 require 'pry'
 require 'bcrypt'
 require 'rack/flash'
+require 'aws-sdk-s3'
+if development?
+  require 'sinatra/reloader'
+  require 'dotenv/load'
+end
 
 use Rack::MethodOverride
 enable :sessions
 use Rack::Flash
 
 $db = PG.connect(
-  # :host => "localhost",
-  # :user => 'kanekou',
-	# :dbname => "comics_app"
-  ENV['DATABASE_URL']
+  host: "localhost",
+  user: 'kanekou',
+  dbname: "comics_app"
+  # ENV['DATABASE_URL']
 )
+
+# AWS S3 への接続クライアント
+def s3
+  @s3 ||= Aws::S3::Resource.new(
+          region: 'ap-northeast-1', # リージョン東京
+          credentials: Aws::Credentials.new(
+              ENV['AWS_S3_ACCESS_KEY_ID'], # S3用アクセスキー
+              ENV['AWS_S3_SECRET_ACCESS_KEY'] # S3用シークレットアクセスキー
+          )
+  )
+end
 
 helpers do
   # 現在ログイン中のユーザーを返す (いる場合)
@@ -220,15 +234,18 @@ post '/comic' do
   page_params.push(params[:page1], params[:page2], params[:page3], params[:page4])
 
   page_params.each_with_index do |page_param, index|
-    page_name = "#{current_user['id']}_#{comic['id']}_#{index + 1}"
     next if page_param.nil?
 
     current_file_path = page_param[:tempfile]
     file_type = page_param[:type].split('/').last
-    move_file_path = "/image/#{page_name}.#{file_type}"
-    FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+    key_name = SecureRandom.hex.to_s
 
-    $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index + 1, move_file_path, Time.now, Time.now])
+    s3.bucket(ENV['AWS_S3_BUCKET'])
+        .object(key_name)
+        .put(body: current_file_path, content_type: file_type, acl: 'public-read')
+
+    s3_image_path = s3.bucket(ENV['AWS_S3_BUCKET']).object(key_name).public_url
+    $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [comic['id'], index + 1, s3_image_path, Time.now, Time.now])
 
     # comicの更新日時を更新
     $db.exec_params('UPDATE comics SET updated_at = $1 WHERE id = $2', [Time.now, comic['id']]) if index == 3
@@ -276,17 +293,17 @@ end
 post '/pages/:comic_id' do
   reset_flashes
   # 画像の保存
-  filename = "#{current_user['id']}_#{params[:comic_id]}_#{params[:page_number]}"
   current_file_path = params[:file][:tempfile]
   file_type = params[:file][:type].split('/').last
-  move_file_path = "/image/#{filename}.#{file_type}"
-  if FileTest.exists?("./public/#{move_file_path}")
-    FileUtils.rm("./public/#{move_file_path}")
-  end # 同じファイルが存在したら元の画像を削除する．
-  FileUtils.mv(current_file_path, "./public/#{move_file_path}")
+  key_name = SecureRandom.hex.to_s
+
+  s3.bucket(ENV['AWS_S3_BUCKET'])
+      .object(key_name)
+      .put(body: current_file_path, content_type: file_type, acl: 'public-read')
+  s3_image_path = s3.bucket(ENV['AWS_S3_BUCKET']).object(key_name).public_url
 
   # db保存
-  $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], move_file_path, Time.now, Time.now])
+  $db.exec_params('INSERT INTO pages (comic_id, page_number, imagefile, created_at, updated_at) VALUES ($1,$2,$3,$4,$5)', [params[:comic_id], params[:page_number], s3_image_path, Time.now, Time.now])
   $db.exec_params('UPDATE comics SET updated_at = $1 WHERE id = $2', [Time.now, params[:comic_id]])
 
   flash[:notice] = 'ページを追加しました'
