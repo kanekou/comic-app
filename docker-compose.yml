@@ -1,9 +1,10 @@
+#  https://github.com/supimen/flyway-docker-migration
 version: '3.4'
 
 x-template: &flyway-template
   image: boxfuse/flyway:latest
   volumes:
-    - ./sql:/flyway/sql
+    - ./db/sql:/flyway/sql
     - ./conf:/flyway/conf
   depends_on:
     - db
@@ -21,6 +22,10 @@ services:
     <<: *flyway-template
     command: info
 
+  flyway-repair:
+    <<: *flyway-template
+    command: repair
+
   db:
     image: postgres:latest
     environment:
@@ -30,4 +35,8 @@ services:
       - 5432:5432
     volumes:
       - ./init:/docker-entrypoint-initdb.d # Create DataBase するinit用のSQLの格納先
+      - data-volume:/var/lib/pgsql # TODO:保存されていない
     container_name: db
+
+volumes:
+  data-volume:

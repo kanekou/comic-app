@@ -15,8 +15,9 @@ use Rack::Flash
 
 $db = PG.connect(
   host: "localhost",
-  user: 'kanekou',
-  dbname: "comics_app"
+  user: 'user',
+  dbname: "comics_app",
+  password: "password"
   # ENV['DATABASE_URL']
 )
 
