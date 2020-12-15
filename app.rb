@@ -14,11 +14,11 @@ enable :sessions
 use Rack::Flash
 
 $db = PG.connect(
-  host: "localhost",
-  user: 'user',
-  dbname: "comics_app",
-  password: "password"
-  # ENV['DATABASE_URL']
+  # host: "localhost",
+  # user: 'user',
+  # dbname: "comics_app",
+  # password: "password"
+  ENV['DATABASE_URL']
 )
 
 # AWS S3 への接続クライアント
