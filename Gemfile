@@ -11,6 +11,8 @@ gem 'pry-byebug'
 gem 'bcrypt'
 gem 'rack-flash3'
 gem 'aws-sdk-s3', '~> 1'
+gem 'rake'
+gem 'sinatra-activerecord'
 
 group :development do
   gem 'sinatra-contrib'
