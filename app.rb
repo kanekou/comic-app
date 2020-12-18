@@ -4,6 +4,7 @@ require 'pry'
 require 'bcrypt'
 require 'rack/flash'
 require 'aws-sdk-s3'
+require "sinatra/activerecord"
 if development?
   require 'sinatra/reloader'
   require 'dotenv/load'
@@ -13,21 +14,41 @@ use Rack::MethodOverride
 enable :sessions
 use Rack::Flash
 
-$db = PG.connect(
-  host: "localhost",
-  user: 'kanekou',
-  dbname: "comics_app"
-  # ENV['DATABASE_URL']
-)
+# set db
+configure :development do
+  set :database, { adapter: 'postgresql', host: "localhost", database: 'comics_app', username: 'user', password: 'password' }
+  $db = PG.connect(
+      host: "localhost",
+      user: 'user',
+      dbname: "comics_app",
+      password: "password"
+  )
+end
+
+configure :production do
+  set :database, { url: ENV['DATABASE_URL'] }
+  $db = PG.connect(
+      ENV['DATABASE_URL']
+  )
+end
+
+# $db = PG.connect(
+#     host: "localhost",
+#     user: 'user',
+#     dbname: "comics_app",
+#     password: "password"
+# ENV['DATABASE_URL']
+# )
+
 
 # AWS S3 への接続クライアント
 def s3
   @s3 ||= Aws::S3::Resource.new(
-          region: 'ap-northeast-1', # リージョン東京
-          credentials: Aws::Credentials.new(
-              ENV['AWS_S3_ACCESS_KEY_ID'], # S3用アクセスキー
-              ENV['AWS_S3_SECRET_ACCESS_KEY'] # S3用シークレットアクセスキー
-          )
+      region: 'ap-northeast-1', # リージョン東京
+      credentials: Aws::Credentials.new(
+          ENV['AWS_S3_ACCESS_KEY_ID'], # S3用アクセスキー
+          ENV['AWS_S3_SECRET_ACCESS_KEY'] # S3用シークレットアクセスキー
+      )
   )
 end
 
@@ -82,6 +103,7 @@ helpers do
   end
 
   require 'uri'
+
   def text_url_to_link(text)
     URI.extract(text, ['https']).uniq.each do |url|
       sub_text = ''
